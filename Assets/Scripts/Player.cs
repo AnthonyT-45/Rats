@@ -1,4 +1,5 @@
 using System.Numerics;
+using JetBrains.Annotations;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
@@ -7,10 +8,14 @@ public class PlayerMovement : MonoBehaviour
 {
     public float speed = 5f;
     public Animator animator;
+    public bool isAttacking = false;
+    public float knockbackForce = 20f;
+    public float health = 10f;
+
     private Rigidbody2D rb;
     private Vector2 movement;
     private Vector2 lastDirection;
-    public bool isAttacking = false;
+
 
 
 
@@ -102,6 +107,32 @@ public class PlayerMovement : MonoBehaviour
     public void AttackAnimationEnd()
     {
         isAttacking = false;
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            Rigidbody2D rbPlayer = GetComponent<Rigidbody2D>();
+            Rigidbody2D rbEnemy = other.GetComponentInParent<Rigidbody2D>();
+
+            Vector2 knockbackDirection = (rbPlayer.position - rbEnemy.position).normalized;
+
+            rbPlayer.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+            rbEnemy.AddForce(-knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+
+            if (other.TryGetComponent<Enemy>(out var enemy))
+            {
+                enemy.MovementCooldown();
+            }
+
+            health -= 1f;
+
+            if (health <= 0f)
+            {
+                Destroy(gameObject);
+            }
+        }
     }
 
 
