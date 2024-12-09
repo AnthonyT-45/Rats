@@ -9,8 +9,8 @@ using Vector3 = UnityEngine.Vector3;
 public class Player : MonoBehaviour
 {
     public float speed = 5f;
-    public Animator lowerBodyAnimator;
-    public Animator upperBodyAnimator;
+    public Animator bodyAnimator;
+    public Animator armAnimator;
     public float health = 10f;
 
     private Rigidbody2D rb;
@@ -45,6 +45,24 @@ public class Player : MonoBehaviour
         rb.velocity = movement * speed;
     }
 
+    void MovementAnimation(Animator animator)
+    {
+        animator.SetFloat("Movement_X", movement.x);
+        animator.SetFloat("Movement_Y", movement.y);
+        animator.SetFloat("Speed", movement.sqrMagnitude);
+        animator.SetFloat("Last_X", lastDirection.x);
+        animator.SetFloat("Last_Y", lastDirection.y);
+    }
+
+    void AttackAnimation(Animator animator)
+    {
+        animator.SetFloat("Attack_X", attackX);
+        animator.SetFloat("Last_X", lastDirection.x);
+        animator.SetFloat("Last_Y", lastDirection.y);
+        animator.SetTrigger("Attack");
+    }
+
+
     void Movement()
     {
         movement = Vector2.zero;
@@ -73,17 +91,8 @@ public class Player : MonoBehaviour
             lastDirection = movement;
         }
 
-        lowerBodyAnimator.SetFloat("Movement_X", movement.x);
-        lowerBodyAnimator.SetFloat("Movement_Y", movement.y);
-        lowerBodyAnimator.SetFloat("Speed", movement.sqrMagnitude);
-        lowerBodyAnimator.SetFloat("Last_X", lastDirection.x);
-        lowerBodyAnimator.SetFloat("Last_Y", lastDirection.y);
-
-        upperBodyAnimator.SetFloat("Movement_X", movement.x);
-        upperBodyAnimator.SetFloat("Movement_Y", movement.y);
-        upperBodyAnimator.SetFloat("Speed", movement.sqrMagnitude);
-        upperBodyAnimator.SetFloat("Last_X", lastDirection.x);
-        upperBodyAnimator.SetFloat("Last_Y", lastDirection.y);
+        MovementAnimation(bodyAnimator);
+        MovementAnimation(armAnimator);
     }
 
     void Attack()
@@ -109,15 +118,7 @@ public class Player : MonoBehaviour
 
             lastDirection = new Vector2(attackX, 0f);
 
-            lowerBodyAnimator.SetFloat("Attack_X", attackX);
-            lowerBodyAnimator.SetFloat("Last_X", lastDirection.x);
-            lowerBodyAnimator.SetFloat("Last_Y", lastDirection.y);
-            lowerBodyAnimator.SetTrigger("Attack");
-
-            upperBodyAnimator.SetFloat("Attack_X", attackX);
-            upperBodyAnimator.SetFloat("Last_X", lastDirection.x);
-            upperBodyAnimator.SetFloat("Last_Y", lastDirection.y);
-            upperBodyAnimator.SetTrigger("Attack");
+            AttackAnimation(armAnimator);
 
             StartCoroutine(EndAttack());
 
@@ -126,12 +127,12 @@ public class Player : MonoBehaviour
 
         IEnumerator EndAttack()
         {
-            AnimatorStateInfo stateInfo = upperBodyAnimator.GetCurrentAnimatorStateInfo(0);
+            AnimatorStateInfo stateInfo = armAnimator.GetCurrentAnimatorStateInfo(0);
 
             while (!stateInfo.IsName("Attack"))
             {
                 yield return null;
-                stateInfo = upperBodyAnimator.GetCurrentAnimatorStateInfo(0);
+                stateInfo = armAnimator.GetCurrentAnimatorStateInfo(0);
             }
             yield return new WaitForSeconds(stateInfo.length);
 
@@ -141,6 +142,9 @@ public class Player : MonoBehaviour
 
 
         }
+
+
+
     }
 
 }
